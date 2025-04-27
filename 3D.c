@@ -27,7 +27,7 @@ typedef struct face
 point2D project(point3D p)
 {
     double fov_rad = (FOV * M_PI) / 180;
-    double factor = 1/tan(fov_rad / 2);
+    double factor = 1 / tan(fov_rad / 2);
     
     if (p.z == 0) p.z = 0.001;
 
@@ -38,10 +38,32 @@ point2D project(point3D p)
     return projected;
 }
 
+void rotateY(point3D *p, double theta)
+{
+    p->z -= 11;
+
+    double newY = p->y * cos(theta) - p->z * sin(theta);
+    double newZ = p->y * sin(theta) + p->z * cos(theta);
+
+    p->y = newY;
+    p->z = newZ + 11;
+}
+
+void rotateX(point3D *p, double theta)
+{
+    p->z -= 11;
+
+    double newX = p->x * cos(theta) + p->z * sin(theta);
+    double newZ = -1 * (p->x * sin(theta)) + p->z * cos(theta);
+
+    p->x = newX;
+    p->z = newZ + 11;
+}
+
 int main()
 {
     SDL_InitSubSystem(SDL_INIT_VIDEO);
-    SDL_Window *window = SDL_CreateWindow("Shapes3D", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 
+    SDL_Window *window = SDL_CreateWindow("Cube3D", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 
     1280, 700, SDL_WINDOW_SHOWN);
     SDL_GetWindowSize(window, &windowWidth, &windowHeight);
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
@@ -51,10 +73,10 @@ int main()
     point3D p2 = {1, -1, 0 + distance};
     point3D p3 = {1, 1, 0 + distance};
     point3D p4 = {-1, 1, 0 + distance};
-    point3D p5 = {-1, -1, 1 + distance};
-    point3D p6 = {1, -1, 1 + distance};
-    point3D p7 = {1, 1, 1 + distance};
-    point3D p8 = {-1, 1, 1 + distance};
+    point3D p5 = {-1, -1, 2 + distance};
+    point3D p6 = {1, -1, 2 + distance};
+    point3D p7 = {1, 1, 2 + distance};
+    point3D p8 = {-1, 1, 2 + distance};
 
     face faces[4] = {
         {p1, p2, p3, p4}, 
@@ -70,6 +92,26 @@ int main()
         if (event.type == SDL_QUIT)
         {
             running = 0;
+        }
+        if (event.type == SDL_MOUSEMOTION)
+        {
+            double dx = event.motion.xrel;
+            double dy = event.motion.yrel;
+            double rotationX = -1 * dx * 2 * M_PI / 1000;
+            double rotationY = dy * 2 * M_PI / 1000;
+            for (int i = 0; i < 4; i++)
+            {
+                rotateX(&faces[i].a, rotationX);
+                rotateX(&faces[i].b, rotationX);
+                rotateX(&faces[i].c, rotationX);
+                rotateX(&faces[i].d, rotationX);
+
+                rotateY(&faces[i].a, rotationY);
+                rotateY(&faces[i].b, rotationY);
+                rotateY(&faces[i].c, rotationY);
+                rotateY(&faces[i].d, rotationY);
+
+            }
         }
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
