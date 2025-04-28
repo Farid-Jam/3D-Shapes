@@ -75,7 +75,7 @@ void rotateY(point3D *p, double theta)
 int main()
 {
     // Initialize system
-    SDL_InitSubSystem(SDL_INIT_VIDEO);
+    SDL_Init(SDL_INIT_VIDEO);
 
     // Create window
     SDL_Window *window = SDL_CreateWindow("Cube3D", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 
@@ -170,6 +170,5 @@ int main()
     // Close everything before shutting down
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
-    SDL_QuitSubSystem(SDL_INIT_VIDEO);
     SDL_Quit();
 }
