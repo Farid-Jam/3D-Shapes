@@ -49,7 +49,7 @@ point2D project(point3D p)
 }
 
 // Method to rotate three dimensional points about the X axis 
-void rotateY(point3D *p, double theta)
+void rotateX(point3D *p, double theta)
 {
     p->z -= 11;
 
@@ -61,7 +61,7 @@ void rotateY(point3D *p, double theta)
 }
 
 // Method to rotate three dimensional points about the Y axis 
-void rotateX(point3D *p, double theta)
+void rotateY(point3D *p, double theta)
 {
     p->z -= 11;
 
@@ -132,15 +132,15 @@ int main()
             double rotationY = dy * 2 * M_PI / 1000;
             for (int i = 0; i < 4; i++)
             {
-                rotateX(&faces[i].a, rotationX);
-                rotateX(&faces[i].b, rotationX);
-                rotateX(&faces[i].c, rotationX);
-                rotateX(&faces[i].d, rotationX);
+                rotateY(&faces[i].a, rotationX);
+                rotateY(&faces[i].b, rotationX);
+                rotateY(&faces[i].c, rotationX);
+                rotateY(&faces[i].d, rotationX);
 
-                rotateY(&faces[i].a, rotationY);
-                rotateY(&faces[i].b, rotationY);
-                rotateY(&faces[i].c, rotationY);
-                rotateY(&faces[i].d, rotationY);
+                rotateX(&faces[i].a, rotationY);
+                rotateX(&faces[i].b, rotationY);
+                rotateX(&faces[i].c, rotationY);
+                rotateX(&faces[i].d, rotationY);
 
             }
         }
