@@ -2,11 +2,13 @@
 #include <math.h>
 
 int FOV = 90;
-int distance = 10;
+int distance = 11;
 int windowWidth = 1280;
 int windowHeight = 700;
 int running = 1;
 SDL_Event event;
+int numFaces = 6;
+int culling = 0; // 0 to turn off, any other number to turn on
 
 // Structure to store 3-dimensional points
 typedef struct point3D
@@ -28,6 +30,15 @@ typedef struct face
 {
     struct point3D a, b, c, d;
 } face;
+
+// Method to determine whether the normal of a face points towards the camera 
+double backfaceCulling(face face)
+{
+    point3D edge1 = {face.d.x - face.a.x, face.d.y - face.a.y, face.d.z - face.a.z};
+    point3D edge2 = {face.b.x - face.a.x, face.b.y - face.a.y, face.b.z - face.a.z};
+
+    return ((edge1.x * edge2.y) - (edge1.y * edge2.x) < 0);
+}
 
 // Method to projecta 3-demensional point onto a 2-dimensional plane, returning the 2-dimensional point
 point2D project(point3D p)
@@ -51,25 +62,25 @@ point2D project(point3D p)
 // Method to rotate three dimensional points about the X axis 
 void rotateX(point3D *p, double theta)
 {
-    p->z -= 11;
+    p->z -= distance;
 
     double newY = p->y * cos(theta) - p->z * sin(theta);
     double newZ = p->y * sin(theta) + p->z * cos(theta);
 
     p->y = newY;
-    p->z = newZ + 11;
+    p->z = newZ + distance;
 }
 
 // Method to rotate three dimensional points about the Y axis 
 void rotateY(point3D *p, double theta)
 {
-    p->z -= 11;
+    p->z -= distance;
 
     double newX = p->x * cos(theta) + p->z * sin(theta);
     double newZ = -1 * (p->x * sin(theta)) + p->z * cos(theta);
 
     p->x = newX;
-    p->z = newZ + 11;
+    p->z = newZ + distance;
 }
 
 int main()
@@ -86,21 +97,23 @@ int main()
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
     // Initialize points
-    point3D p1 = {-1, -1, 0 + distance};
-    point3D p2 = {1, -1, 0 + distance};
-    point3D p3 = {1, 1, 0 + distance};
-    point3D p4 = {-1, 1, 0 + distance};
-    point3D p5 = {-1, -1, 2 + distance};
-    point3D p6 = {1, -1, 2 + distance};
-    point3D p7 = {1, 1, 2 + distance};
-    point3D p8 = {-1, 1, 2 + distance};
+    point3D p1 = {-1, -1, -1 + distance};
+    point3D p2 = {1, -1, -1 + distance};
+    point3D p3 = {1, 1, -1 + distance};
+    point3D p4 = {-1, 1, -1 + distance};
+    point3D p5 = {-1, -1, 1 + distance};
+    point3D p6 = {1, -1, 1 + distance};
+    point3D p7 = {1, 1, 1 + distance};
+    point3D p8 = {-1, 1, 1 + distance};
 
     // Initialize array of face struc holding all necessary cube faces
-    face faces[4] = {
+    face faces[6] = {
         {p1, p2, p3, p4}, 
-        {p5, p6, p7, p8}, 
+        {p5, p8, p7, p6}, 
         {p1, p4, p8, p5}, 
-        {p2, p3, p7, p6}
+        {p2, p6, p7, p3},
+        {p4, p3, p7, p8},
+        {p5, p6, p2, p1}
     };
 
     // Render loop
@@ -130,7 +143,7 @@ int main()
             double dy = event.motion.yrel;
             double rotationX = -1 * dx * 2 * M_PI / 1000;
             double rotationY = dy * 2 * M_PI / 1000;
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < numFaces; i++)
             {
                 rotateY(&faces[i].a, rotationX);
                 rotateY(&faces[i].b, rotationX);
@@ -150,16 +163,18 @@ int main()
 
         // Draw lines connecting points in every face 
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < numFaces; i++)
         {
             point2D v1 = project(faces[i].a);
             point2D v2 = project(faces[i].b);
             point2D v3 = project(faces[i].c);
             point2D v4 = project(faces[i].d);
-            SDL_RenderDrawLine(renderer, v1.x, v1.y, v2.x, v2.y);
-            SDL_RenderDrawLine(renderer, v2.x, v2.y, v3.x, v3.y);
-            SDL_RenderDrawLine(renderer, v3.x, v3.y, v4.x, v4.y);
-            SDL_RenderDrawLine(renderer, v4.x, v4.y, v1.x, v1.y);
+            if (backfaceCulling(faces[i]) || !culling ){
+                SDL_RenderDrawLine(renderer, v1.x, v1.y, v2.x, v2.y);
+                SDL_RenderDrawLine(renderer, v2.x, v2.y, v3.x, v3.y);
+                SDL_RenderDrawLine(renderer, v3.x, v3.y, v4.x, v4.y);
+                SDL_RenderDrawLine(renderer, v4.x, v4.y, v1.x, v1.y);
+            }
         }
 
         // Display newest render
