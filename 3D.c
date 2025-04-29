@@ -52,15 +52,15 @@ point3D findNormal(face face)
 double findDot(face face, point3D camPos)
 {
     point3D center = {
-        ((face.a.x + face.b.x) / 2 + face.d.x / 2),
-        ((face.a.y + face.b.y) / 2 + face.d.y / 2), 
-        ((face.a.z + face.b.z) / 2 + face.d.z / 2)
+        ((face.a.x + face.b.x + face.c.x + face.d.x) / 4),
+        ((face.a.y + face.b.y + face.c.y + face.d.y) / 4), 
+        ((face.a.z + face.b.z + face.c.z + face.d.z) / 4)
     };
 
     point3D vector = {
-        center.x - camPos.x,
-        center.y - camPos.y,
-        center.z - camPos.z
+        camPos.x - center.x,
+        camPos.y - center.y,
+        camPos.z - center.z
     };
 
     double dot = vector.x * face.normal.x + vector.y * face.normal.y + vector.z * face.normal.z;
@@ -109,6 +109,24 @@ void rotateY(point3D *p, double theta)
 
     p->x = newX;
     p->z = newZ + distance;
+}
+
+void fillTriangle(SDL_Renderer *renderer, point2D p1, point2D p2, point2D p3)
+{
+    if (p1.y > p2.y) {point2D temp = p1; p1 = p2; p2 = temp;}
+    if (p2.y > p3.y) {point2D temp = p2; p2 = p3; p3 = temp;}
+    if (p1.y > p3.y) {point2D temp = p3; p3 = p1; p1 = temp;}
+}
+
+void fillFace(SDL_Renderer *renderer, face f)
+{
+    point2D v1 = project(f.a);
+    point2D v2 = project(f.b);
+    point2D v3 = project(f.c);
+    point2D v4 = project(f.d);
+
+    fillTriangle(renderer, v1, v2, v3);
+    fillTriangle(renderer, v1, v3, v4);
 }
 
 int main()
@@ -203,7 +221,7 @@ int main()
             point2D v4 = project(faces[i].d);
             faces[i].normal = findNormal(faces[i]);
             faces[i].dot = findDot(faces[i], camera);
-            if (faces[i].dot < 0|| !culling ){
+            if (faces[i].dot > 0|| !culling ){
                 SDL_RenderDrawLine(renderer, v1.x, v1.y, v2.x, v2.y);
                 SDL_RenderDrawLine(renderer, v2.x, v2.y, v3.x, v3.y);
                 SDL_RenderDrawLine(renderer, v3.x, v3.y, v4.x, v4.y);
