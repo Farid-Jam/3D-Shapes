@@ -35,3 +35,7 @@ Make
 ```
 
 ## Controls
+| Key/Input | Action                   |
+|-----------|--------------------------|
+| `f`       | toggle filled face mode
+| `c`       | toggle back-face culling
