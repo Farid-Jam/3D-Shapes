@@ -9,7 +9,7 @@
 - Dynamic lighting via dot product
 - Resizable SDL window
 
-# 📷 Preview
+## 📷 Preview
 ![wireframe](images/wireframe.png)
 Cube3D with back-face culling off and solid face rendering off
 
@@ -18,3 +18,20 @@ Cube3D with back-face culling on and solid face rendering off
 
 ![solid face rendering](images/filled.png)
 Cube3D with back-face culling on and solid face rendering on
+
+## 🛠️ Build Instructions
+### Requirements
+ - SDL2
+ - GCC or any C compiler
+
+### Compilation
+```bash
+Make
+```
+
+### Run
+```bash
+./Cube3D
+```
+
+## Controls
