@@ -8,7 +8,7 @@ int windowHeight = 700;
 int running = 1;
 SDL_Event event;
 int numFaces = 6;
-int culling = 1; // 0 to turn off, any other number to turn on
+int culling = 0; // 0 to turn off, any other number to turn on
 
 // Structure to store 3-dimensional points
 typedef struct point3D
