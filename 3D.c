@@ -178,9 +178,9 @@ void fillFace(SDL_Renderer *renderer, face f)
     double brightness = f.dot;
     if (brightness > 1.0) brightness = 1.0;
     if (brightness < 0.0) brightness = 0.0;
-    Uint8 r = (Uint8)(204 * f.dot);
-    Uint8 g = (Uint8)(204 * f.dot);
-    Uint8 b = (Uint8)(255* f.dot);
+    Uint8 r = (Uint8)(143 * f.dot);
+    Uint8 g = (Uint8)(153 * f.dot);
+    Uint8 b = (Uint8)(251* f.dot);
     SDL_SetRenderDrawColor(renderer, r, g, b, 255);
 
     // Split face into two triangles and fill them
