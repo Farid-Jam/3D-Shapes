@@ -9,6 +9,7 @@ int running = 1;
 SDL_Event event;
 int numFaces = 6;
 int culling = 0; // 0 to turn off, any other number to turn on
+int fillMode = 0; // 0 to turn off, any other number to turn on
 
 // Structure to store 3-dimensional points
 typedef struct point3D
@@ -33,6 +34,14 @@ typedef struct face
     double dot;
 } face;
 
+// Method to normalize vectors
+point3D normalize(point3D p)
+{
+    double norm = sqrt(p.x * p.x + p.y * p.y + p.z * p.z);
+    point3D normalized = {p.x / norm, p.y / norm, p.z / norm};
+    return normalized;
+}
+
 // Method to determine whether the normal of a face points towards the camera 
 point3D findNormal(face face)
 {
@@ -45,7 +54,7 @@ point3D findNormal(face face)
         (edge1.x * edge2.y) - (edge1.y * edge2.x)
     };
 
-    return normal;
+    return normalize(normal);
 }
 
 // Method to determine how much a faces normal vector differs from a vector from the camera to the center of a face
@@ -62,6 +71,8 @@ double findDot(face face, point3D camPos)
         camPos.y - center.y,
         camPos.z - center.z
     };
+
+    vector = normalize(vector);
 
     double dot = vector.x * face.normal.x + vector.y * face.normal.y + vector.z * face.normal.z;
 
@@ -111,20 +122,68 @@ void rotateY(point3D *p, double theta)
     p->z = newZ + distance;
 }
 
+// Function to fill in triangles
 void fillTriangle(SDL_Renderer *renderer, point2D p1, point2D p2, point2D p3)
 {
-    if (p1.y > p2.y) {point2D temp = p1; p1 = p2; p2 = temp;}
-    if (p2.y > p3.y) {point2D temp = p2; p2 = p3; p3 = temp;}
-    if (p1.y > p3.y) {point2D temp = p3; p3 = p1; p1 = temp;}
+    // Sort points by y-coordinate ascending order
+    if (p2.y < p1.y) { point2D temp = p1; p1 = p2; p2 = temp; }
+    if (p3.y < p1.y) { point2D temp = p1; p1 = p3; p3 = temp; }
+    if (p3.y < p2.y) { point2D temp = p2; p2 = p3; p3 = temp; }
+
+    // Determine line slopes
+    double dx1 = (p2.y - p1.y) > 0 ? (p2.x - p1.x) / (p2.y - p1.y) : 0;
+    double dx2 = (p3.y - p1.y) > 0 ? (p3.x - p1.x) / (p3.y - p1.y) : 0;
+    double dx3 = (p3.y - p2.y) > 0 ? (p3.x - p2.x) / (p3.y - p2.y) : 0;
+
+    // Determine start and end x values
+    double sx = p1.x;
+    double ex = p1.x;
+
+    // Determine start and end y values
+    int sy = (int)ceil(p1.y);
+    int ey = (int)ceil(p2.y);
+
+    // Fill from p1 to p2
+    for (int y = sy; y < ey; y++) {
+        int startX = (int)(sx + (y - p1.y) * dx1);
+        int endX = (int)(ex + (y - p1.y) * dx2);
+        if (startX > endX) { int temp = startX; startX = endX; endX = temp; }
+        SDL_RenderDrawLine(renderer, startX, y, endX, y);
+    }
+
+    // Redetermine start and end values for filling from p2 to p3
+    sx = p2.x;
+    sy = (int)ceil(p2.y);
+    ey = (int)ceil(p3.y);
+
+    // Fill from p2 to p3
+    for (int y = sy; y < ey; y++) {
+        int startX = (int)(sx + (y - p2.y) * dx3);
+        int endX = (int)(ex + (y - p1.y) * dx2);
+        if (startX > endX) { int temp = startX; startX = endX; endX = temp; }
+        SDL_RenderDrawLine(renderer, startX, y, endX, y);
+    }
 }
 
+// Function to fill cube faces
 void fillFace(SDL_Renderer *renderer, face f)
 {
+    // Project vertexes onto 2-D plane
     point2D v1 = project(f.a);
     point2D v2 = project(f.b);
     point2D v3 = project(f.c);
     point2D v4 = project(f.d);
 
+    // Determine color of face based off relativity to camera
+    double brightness = f.dot;
+    if (brightness > 1.0) brightness = 1.0;
+    if (brightness < 0.0) brightness = 0.0;
+    Uint8 r = (Uint8)(204 * f.dot);
+    Uint8 g = (Uint8)(204 * f.dot);
+    Uint8 b = (Uint8)(255* f.dot);
+    SDL_SetRenderDrawColor(renderer, r, g, b, 255);
+
+    // Split face into two triangles and fill them
     fillTriangle(renderer, v1, v2, v3);
     fillTriangle(renderer, v1, v3, v4);
 }
@@ -176,6 +235,18 @@ int main()
             running = 0;
         }
 
+        if (event.type == SDL_KEYDOWN)
+        {
+            if (event.key.keysym.sym == SDLK_f)
+            {
+                fillMode = (fillMode == 0) ? 1 : 0;
+            }
+            if (event.key.keysym.sym == SDLK_c)
+            {
+                culling = (culling == 0) ? 1 : 0;
+            }
+        }
+
         if (event.type == SDL_WINDOWEVENT)
         {
             // If window is resized, re-initialize windowWidth and windowHeight
@@ -212,7 +283,7 @@ int main()
         SDL_RenderClear(renderer);
 
         // Draw lines connecting points in every visible face
-        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+        SDL_SetRenderDrawColor(renderer, 204, 204, 255, 225);
         for (int i = 0; i < numFaces; i++)
         {
             point2D v1 = project(faces[i].a);
@@ -221,7 +292,14 @@ int main()
             point2D v4 = project(faces[i].d);
             faces[i].normal = findNormal(faces[i]);
             faces[i].dot = findDot(faces[i], camera);
-            if (faces[i].dot > 0|| !culling ){
+            if (faces[i].dot > 0 && fillMode){
+                fillFace(renderer, faces[i]);
+            } else if (faces[i].dot > 0 && culling && !fillMode){
+                SDL_RenderDrawLine(renderer, v1.x, v1.y, v2.x, v2.y);
+                SDL_RenderDrawLine(renderer, v2.x, v2.y, v3.x, v3.y);
+                SDL_RenderDrawLine(renderer, v3.x, v3.y, v4.x, v4.y);
+                SDL_RenderDrawLine(renderer, v4.x, v4.y, v1.x, v1.y);
+            } else if (!culling && !fillMode){
                 SDL_RenderDrawLine(renderer, v1.x, v1.y, v2.x, v2.y);
                 SDL_RenderDrawLine(renderer, v2.x, v2.y, v3.x, v3.y);
                 SDL_RenderDrawLine(renderer, v3.x, v3.y, v4.x, v4.y);
