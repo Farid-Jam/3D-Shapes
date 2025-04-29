@@ -234,7 +234,8 @@ int main()
         {
             running = 0;
         }
-
+        
+        // Toggle fill and culling modes with 'f' and 'c' keys respectively
         if (event.type == SDL_KEYDOWN)
         {
             if (event.key.keysym.sym == SDLK_f)
