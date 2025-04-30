@@ -1,7 +1,7 @@
-# 🧊 Cube-3D
+# Cube-3D
 **Cube3D** is a simple 3D cube viewer and renderer implemented in C using the SDL2 library. It demonstrates fundamental concepts of 3D graphics including projection, face culling, rotation, and lighting, all powered by complex linear algebra and trigonometry 
 
-## ✨ Features
+## Features
 - Perspective projection  
 - Mouse-controlled 3D rotation  
 - Back-face culling toggle (`c` key)  
@@ -9,7 +9,7 @@
 - Dynamic lighting via dot product  
 - Resizable SDL window  
 
-## 📷 Preview
+## Preview
 ![wireframe](images/wireframe.png)
 *Cube3D with back-face culling off and solid face rendering off*
 
@@ -19,7 +19,7 @@
 ![solid face rendering](images/filled.png)
 *Cube3D with back-face culling on and solid face rendering on*
 
-## 🛠️ Build Instructions
+## Build Instructions
 ### Requirements
  - SDL2
  - GCC or any C compiler
@@ -41,9 +41,12 @@ make
 | `c`       | toggle back-face culling |
 | Mouse     | Rotate cube              |
 
-## 🧠 How it Works
+## How it Works
 - 3D points are rotated around the x and y axises respectively using rotational matrices
 - Projection is performed using a perspective projection formula
 - Back-face culling is determined via the dot product between a faces normal and the view direction
 - Fill mode renders faces as two triangles and fills them through scanline rendering
 - Shading is dot-product-based, using the dot product between a faces normal and the view direction
+
+## What I Learned
+though I received a high mark in my university linear algebra course, I initially had little understanding of its real-world applications. Through the process of working on this project, I gained a much deeper appreciation of how linear algebra is used in practical contexts and how to approach problems from a linear algebraic perspective.
